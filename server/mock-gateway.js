@@ -60,11 +60,27 @@ function buildPayload(input) {
   return payload;
 }
 
+function parseMultipartFormData(body, contentType) {
+  const out = {};
+  if (!contentType.includes("multipart/form-data")) return out;
+  const fieldRegex = /name="([^"]+)"(?:\r\n|[^\r\n]*\r\n)+\r\n([\s\S]*?)\r\n(?=--)/g;
+  let match = fieldRegex.exec(body);
+  while (match) {
+    const name = match[1];
+    const value = match[2];
+    if (name) out[name] = value;
+    match = fieldRegex.exec(body);
+  }
+  return out;
+}
+
 function redirectToGateway(res, payload) {
   const url = new URL(WEB_GATEWAY_URL);
+  url.pathname = "/";
   Object.entries(payload).forEach(([k, v]) => url.searchParams.set(k, v));
   res.statusCode = 303;
   res.setHeader("Location", url.toString());
+  res.setHeader("Cache-Control", "no-store");
   res.end();
 }
 
@@ -94,16 +110,19 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "POST") {
       const contentType = req.headers["content-type"] || "";
       const body = await readBody(req);
-      const parsed =
-        contentType.includes("application/x-www-form-urlencoded") || contentType.includes("multipart/form-data")
-          ? querystring.parse(body)
-          : (() => {
-              try {
-                return JSON.parse(body || "{}");
-              } catch (_e) {
-                return {};
-              }
-            })();
+      const parsed = (() => {
+        if (contentType.includes("application/x-www-form-urlencoded")) {
+          return querystring.parse(body);
+        }
+        if (contentType.includes("multipart/form-data")) {
+          return parseMultipartFormData(body, contentType);
+        }
+        try {
+          return JSON.parse(body || "{}");
+        } catch (_e) {
+          return {};
+        }
+      })();
       const payload = buildPayload(parsed);
       const errors = validate(payload);
       if (errors.length) return json(res, 400, { ok: false, errors });

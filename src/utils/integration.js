@@ -23,10 +23,20 @@ export const parseIncomingInput = () => {
   if (Platform.OS !== "web" || typeof window === "undefined") {
     return { hasIncoming: false, payload: null };
   }
-  const params = new window.URLSearchParams(window.location.search);
+  const merged = new window.URLSearchParams();
+  const sources = [window.location.search];
+  const hash = window.location.hash || "";
+  const hashQueryIndex = hash.indexOf("?");
+  if (hashQueryIndex >= 0) {
+    sources.push(hash.slice(hashQueryIndex));
+  }
+  sources.forEach((source) => {
+    const params = new window.URLSearchParams(source);
+    params.forEach((value, key) => merged.set(key, value));
+  });
   const payload = {};
   for (const key of allowedKeys) {
-    const value = params.get(key);
+    const value = merged.get(key);
     if (value !== null) payload[key] = value;
   }
   const hasIncoming = Boolean(payload.id && payload.name && payload.amount);
