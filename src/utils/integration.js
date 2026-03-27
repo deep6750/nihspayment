@@ -49,6 +49,8 @@ export const postBackResponse = (returnUrl, response) => {
   const form = doc.createElement("form");
   form.method = "post";
   form.action = returnUrl;
+  // Force a top-level redirect for cross-origin merchant callbacks.
+  form.target = "_top";
   Object.entries(response).forEach(([key, value]) => {
     const input = doc.createElement("input");
     input.type = "hidden";
