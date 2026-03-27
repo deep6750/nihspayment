@@ -45,6 +45,17 @@ export const parseIncomingInput = () => {
 
 export const postBackResponse = (returnUrl, response) => {
   if (!returnUrl || !response || Platform.OS !== "web" || typeof window === "undefined") return false;
+  if (returnUrl.includes("Data=")) {
+    try {
+      const target = new window.URL(returnUrl);
+      target.searchParams.set("Data", JSON.stringify(response));
+      // Force top-level redirect for cross-origin merchant callbacks.
+      window.top.location.href = target.toString();
+      return true;
+    } catch (_e) {
+      // Fall back to form POST flow below.
+    }
+  }
   const doc = window.document;
   const form = doc.createElement("form");
   form.method = "post";
