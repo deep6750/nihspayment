@@ -51,68 +51,89 @@ export default function GatewayScreen({ navigation }) {
     go("approved");
   };
 
-  const compact = width < 720;
+  const compact = width < 860;
 
   return (
     <SafeAreaView edges={["top"]} style={styles.safe}>
       <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <ScrollView contentContainerStyle={styles.content}>
-          {!state.integrationMode ? <SoftButton title="Back" variant="ghost" onPress={() => navigation.navigate("Summary")} /> : null}
-          <Text style={styles.title}>CCAvenue Gateway</Text>
-          <Text style={styles.sub}>🔒 Secured · Mock</Text>
-          {state.integrationMode ? <Text style={styles.source}>Source: external merchant form request</Text> : null}
-
-          <View style={styles.grid}>
-            {methods.map((m) => (
-              <View key={m.id} style={[styles.tileWrap, compact && styles.tileWrapCompact]}>
-                <PaymentMethodTile item={m} selected={m.id === state.selectedMethod} onPress={() => setMethod(m.id)} />
-              </View>
-            ))}
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.topbar}>
+            <Text style={styles.brand}>SecurePay</Text>
+            {!state.integrationMode ? <SoftButton title="Cancel" variant="ghost" onPress={() => navigation.navigate("Summary")} /> : null}
+          </View>
+          <View style={styles.steps}>
+            <View style={styles.stepRow}><View style={styles.stepDotActive} /><Text style={styles.stepTextActive}>Payment</Text></View>
+            <View style={styles.stepDivider} />
+            <View style={styles.stepRow}><View style={styles.stepDot} /><Text style={styles.stepText}>Review</Text></View>
+            <View style={styles.stepDivider} />
+            <View style={styles.stepRow}><View style={styles.stepDot} /><Text style={styles.stepText}>Confirm</Text></View>
           </View>
 
-          {isCard ? (
-            <Card>
-              <FieldInput label="Card Number" keyboardType="number-pad" value={card.number} onChangeText={(v) => setCard((s) => ({ ...s, number: formatCard(v) }))} placeholder="1234 5678 9012 3456" />
-              <View style={[styles.inline, compact && styles.inlineCompact]}>
-                <View style={styles.half}><FieldInput label="Expiry" value={card.expiry} onChangeText={(v) => setCard((s) => ({ ...s, expiry: formatExpiry(v) }))} placeholder="MM/YY" /></View>
-                <View style={styles.half}><FieldInput label="CVV" secureTextEntry value={card.cvv} onChangeText={(cvv) => setCard((s) => ({ ...s, cvv: cvv.replace(/\D/g, "").slice(0, 4) }))} placeholder="100" /></View>
+          <View style={[styles.layout, compact && styles.layoutCompact]}>
+            <View style={[styles.formCol, compact && styles.formColCompact]}>
+              <Text style={styles.sectionTitle}>Payment Method</Text>
+              <View style={styles.grid}>
+                {methods.map((m) => (
+                  <View key={m.id} style={[styles.tileWrap, compact && styles.tileWrapCompact]}>
+                    <PaymentMethodTile item={m} selected={m.id === state.selectedMethod} onPress={() => setMethod(m.id)} />
+                  </View>
+                ))}
               </View>
-              <FieldInput label="Name on Card" value={card.holder} onChangeText={(holder) => setCard((s) => ({ ...s, holder }))} />
-              <SoftButton title="Use Test Card" onPress={() => setCard({ number: "5123 4500 0000 0008", expiry: "01/39", cvv: "100", holder: "Test User" })} />
-              {!!error ? <Text style={styles.error}>{error}</Text> : null}
-            </Card>
-          ) : (
-            <Card variant="soft">
-              <Text style={styles.wallet}>Wallet Checkout</Text>
-              <Text style={styles.walletSub}>Tap Pay to simulate wallet authorization.</Text>
-            </Card>
-          )}
 
-          <Card variant="soft">
-            <LineItem label="Customer" value={state.input.name || "-"} />
-            <LineItem label="Form ID" value={state.input.id || "-"} />
-            <LineItem label="Service" value={formatAmount(charges.service)} />
-            <LineItem label="Shipment" value={formatAmount(charges.shipment)} />
-            <LineItem label="VAT 5%" value={formatAmount(charges.vat)} />
-            <LineItem label="Total" value={formatAmount(charges.total)} strong />
-          </Card>
+              {isCard ? (
+                <Card>
+                  <Text style={styles.subHeading}>Card Details</Text>
+                  <FieldInput label="Cardholder Name" value={card.holder} onChangeText={(holder) => setCard((s) => ({ ...s, holder }))} placeholder="John Doe" />
+                  <FieldInput label="Card Number" keyboardType="number-pad" value={card.number} onChangeText={(v) => setCard((s) => ({ ...s, number: formatCard(v) }))} placeholder="0000 0000 0000 0000" />
+                  <View style={[styles.inline, compact && styles.inlineCompact]}>
+                    <View style={styles.half}><FieldInput label="Expiry Date" value={card.expiry} onChangeText={(v) => setCard((s) => ({ ...s, expiry: formatExpiry(v) }))} placeholder="MM/YY" /></View>
+                    <View style={styles.half}><FieldInput label="CVV" secureTextEntry value={card.cvv} onChangeText={(cvv) => setCard((s) => ({ ...s, cvv: cvv.replace(/\D/g, "").slice(0, 4) }))} placeholder="***" /></View>
+                  </View>
+                  <SoftButton title="Use Test Card" onPress={() => setCard({ number: "5123 4500 0000 0008", expiry: "01/39", cvv: "100", holder: "Test User" })} />
+                  {!!error ? <Text style={styles.error}>{error}</Text> : null}
+                </Card>
+              ) : (
+                <Card variant="soft">
+                  <Text style={styles.wallet}>Digital Wallet</Text>
+                  <Text style={styles.walletSub}>Apple Pay and Samsung Pay are simulated in this mock.</Text>
+                </Card>
+              )}
 
-          <Card style={styles.mock}>
-            <View style={styles.mockTitleRow}>
-              <Text style={styles.mockTitle}>🛠 Mock Controls</Text>
-              <Text style={styles.dev}>DEV ONLY</Text>
+              <Card style={styles.mock}>
+                <View style={styles.mockTitleRow}>
+                  <Text style={styles.mockTitle}>Payment Session Controls</Text>
+                </View>
+                <View style={[styles.inline, compact && styles.inlineCompact]}>
+                  <View style={styles.half}><SoftButton title="Simulate Failure" variant="danger" onPress={() => go("declined")} /></View>
+                  <View style={styles.half}><SoftButton title="Simulate Timeout" variant="soft" onPress={() => go("timeout")} /></View>
+                  <View style={styles.half}><SoftButton title="Simulate Success" variant="soft" onPress={() => go("approved")} /></View>
+                </View>
+              </Card>
             </View>
-            <View style={[styles.inline, compact && styles.inlineCompact]}>
-              <View style={styles.half}><SoftButton title="✓ Approve" variant="soft" onPress={() => go("approved")} /></View>
-              <View style={styles.half}><SoftButton title="✗ Decline" variant="danger" onPress={() => go("declined")} /></View>
-            </View>
-            <View style={[styles.inline, compact && styles.inlineCompact]}>
-              <View style={styles.half}><SoftButton title="⏱ Timeout" variant="soft" onPress={() => go("timeout")} /></View>
-              <View style={styles.half}><SoftButton title="✕ Cancel" variant="ghost" onPress={() => go("cancelled")} /></View>
-            </View>
-          </Card>
 
-          <GradientButton title={`Pay AED ${charges.total.toFixed(2)}`} onPress={pay} />
+            <View style={[styles.summaryCol, compact && styles.summaryColCompact]}>
+              <Card variant="soft" style={styles.summaryCard}>
+                <Text style={styles.summaryTitle}>Order Summary</Text>
+                <View style={styles.productPill}>
+                  <View>
+                    <Text style={styles.productName}>Premium Subscription</Text>
+                    <Text style={styles.productPlan}>Annual Plan</Text>
+                  </View>
+                  <Text style={styles.productPrice}>{formatAmount(charges.service)}</Text>
+                </View>
+                <LineItem label="Subtotal" value={formatAmount(charges.service)} />
+                <LineItem label="VAT (5%)" value={formatAmount(charges.vat)} />
+                <LineItem label="Total" value={formatAmount(charges.total)} strong />
+                <GradientButton title={`Pay ${formatAmount(charges.total).replace("AED ", "AED ")}`} onPress={pay} />
+                <Text style={styles.compliance}>PCI-DSS LEVEL 1 COMPLIANT</Text>
+              </Card>
+            </View>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -121,21 +142,51 @@ export default function GatewayScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: 16, gap: 14, width: "100%", maxWidth: 980, alignSelf: "center" },
-  title: { ...typography.h2, color: colors.onSurface },
-  sub: { ...typography.body, color: colors.onSurfaceVariant },
-  source: { ...typography.label, color: colors.onSurfaceVariant },
+  scroll: { flex: 1 },
+  content: { padding: 16, paddingBottom: 56, gap: 16, width: "100%", maxWidth: 1200, alignSelf: "center", flexGrow: 1 },
+  topbar: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  brand: { ...typography.h3, color: colors.primary },
+  steps: { flexDirection: "row", alignItems: "center", gap: 10 },
+  stepRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  stepDotActive: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.primary },
+  stepDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.outlineVariant },
+  stepTextActive: { ...typography.bodySm, color: colors.onSurface, fontFamily: "Inter_600SemiBold" },
+  stepText: { ...typography.bodySm, color: colors.onSurfaceVariant },
+  stepDivider: { width: 40, height: 1, backgroundColor: colors.outlineVariant },
+  layout: { flexDirection: "row", gap: 24, alignItems: "flex-start" },
+  layoutCompact: { flexDirection: "column", alignItems: "stretch" },
+  formCol: { flex: 1, gap: 16 },
+  formColCompact: { flexGrow: 0, flexShrink: 0, flexBasis: "auto", width: "100%" },
+  summaryCol: { width: 380, maxWidth: "100%" },
+  summaryColCompact: { width: "100%" },
+  sectionTitle: { ...typography.h2, color: colors.onSurface },
   grid: { flexDirection: "row", flexWrap: "wrap", marginHorizontal: -6 },
-  tileWrap: { width: "50%", padding: 6 },
+  tileWrap: { width: "33.3333%", padding: 6 },
   tileWrapCompact: { width: "100%" },
+  subHeading: { ...typography.h3, color: colors.onSurface, marginBottom: 8 },
   inline: { flexDirection: "row", marginHorizontal: -6 },
   inlineCompact: { flexDirection: "column", gap: 10, marginHorizontal: 0 },
   half: { flex: 1, paddingHorizontal: 6 },
   wallet: { ...typography.h3, color: colors.onSurface },
-  walletSub: { ...typography.body, color: colors.onSurfaceVariant, marginTop: 6 },
-  mock: { borderWidth: 1, borderStyle: "dashed", borderColor: colors.outline },
-  mockTitleRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
-  mockTitle: { ...typography.strong, color: colors.onSurface },
-  dev: { ...typography.label, color: colors.warning },
-  error: { ...typography.label, color: colors.error, marginTop: 8 },
+  walletSub: { ...typography.bodySm, color: colors.onSurfaceVariant, marginTop: 6 },
+  summaryCard: { gap: 12 },
+  summaryTitle: { ...typography.h2, color: colors.onSurface },
+  productPill: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.outlineVariant,
+    padding: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  productName: { ...typography.bodySm, fontFamily: "Inter_700Bold", color: colors.onSurface },
+  productPlan: { ...typography.bodySm, color: colors.onSurfaceVariant, fontSize: 12 },
+  productPrice: { ...typography.strong, color: colors.primary },
+  compliance: { ...typography.label, color: colors.onSurfaceVariant, textAlign: "center", marginTop: 4 },
+  mock: { borderWidth: 1, borderStyle: "solid", borderColor: colors.outlineVariant },
+  mockTitleRow: { marginBottom: 8 },
+  mockTitle: { ...typography.label, color: colors.onSurfaceVariant, textTransform: "uppercase" },
+  error: { ...typography.bodySm, color: colors.error, marginTop: 8 },
 });

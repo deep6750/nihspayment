@@ -32,21 +32,20 @@ export default function FieldInput({
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 4 },
-  label: { ...typography.label, color: colors.onSurfaceVariant },
+  wrap: { gap: 6 },
+  label: { ...typography.label, color: colors.onSurfaceVariant, textTransform: "uppercase" },
   input: {
-    ...typography.body,
-    backgroundColor: colors.surfaceContainerHigh,
-    borderTopLeftRadius: radii.inputTop,
-    borderTopRightRadius: radii.inputTop,
-    borderBottomWidth: 2,
-    borderBottomColor: colors.outline,
+    ...typography.bodySm,
+    backgroundColor: colors.surfaceContainerLowest,
+    borderRadius: radii.base,
+    borderWidth: 1,
+    borderColor: colors.outlineVariant,
     paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingVertical: 13,
     color: colors.onSurface,
   },
-  focused: { borderBottomColor: colors.primary },
-  error: { borderBottomColor: colors.error },
-  errorText: { ...typography.label, color: colors.error },
-  hint: { ...typography.label, color: colors.onSurfaceVariant, fontSize: 12 },
+  focused: { borderColor: colors.primary },
+  error: { borderColor: colors.error },
+  errorText: { ...typography.bodySm, color: colors.error, fontSize: 12 },
+  hint: { ...typography.bodySm, color: colors.onSurfaceVariant, fontSize: 12 },
 });

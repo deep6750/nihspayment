@@ -1,6 +1,5 @@
 import React from "react";
-import { Platform, Pressable, StyleSheet, Text } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { colors, radii, typography } from "../theme";
 
@@ -20,17 +19,17 @@ export default function GradientButton({ title, onPress, disabled }) {
       }}
       style={({ pressed }) => [styles.pressable, pressed && styles.pressed, disabled && styles.disabled]}
     >
-      <LinearGradient colors={[colors.primary, colors.primaryContainer]} start={{ x: 0.1, y: 0.9 }} end={{ x: 0.9, y: 0.1 }} style={styles.gradient}>
+      <View style={styles.gradient}>
         <Text style={styles.text}>{title}</Text>
-      </LinearGradient>
+      </View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   pressable: { borderRadius: radii.button, overflow: "hidden" },
-  gradient: { borderRadius: radii.button, paddingVertical: 14, alignItems: "center" },
-  text: { ...typography.strong, color: "#fff" },
+  gradient: { borderRadius: radii.button, paddingVertical: 16, alignItems: "center", backgroundColor: colors.primary },
+  text: { ...typography.strong, color: colors.onPrimary },
   pressed: { transform: [{ scale: 0.99 }] },
   disabled: { opacity: 0.5 },
 });
